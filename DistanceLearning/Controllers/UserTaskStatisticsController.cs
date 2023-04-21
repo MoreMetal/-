@@ -5,75 +5,74 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DistanceLearning.Data;
 
-namespace ExamPreparation.Controllers
+namespace DistanceLearning.Controllers;
+
+[Authorize(Roles = Data.Authorization.Constants.Roles.STUDENT)]
+public class UserTaskStatisticsController : Controller
 {
-    [Authorize]
-    public class UserTaskStatisticsController : Controller
+    private readonly AppDbContext _context;
+    private readonly UserManager<IdentityUser> _userManager;
+
+    public UserTaskStatisticsController(AppDbContext context, UserManager<IdentityUser> userManager)
     {
-        private readonly AppDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        _context = context;
+        _userManager = userManager;
+    }
 
-        public UserTaskStatisticsController(AppDbContext context, UserManager<IdentityUser> userManager)
+    public IActionResult Index()
+    {
+        var statisticList = new List<UserTaskStatisticsViewModel>();
+
+        var user = _userManager.GetUserAsync(HttpContext.User).GetAwaiter().GetResult();
+
+        var statics = _context.UserTaskStatistics.Include(e => e.ExamTask).Where(s => s.IdentityUser == user).OrderBy(s => s.CreateDate);
+
+        var staticsGroup = statics
+                .GroupBy(p => p.CreateDate)
+                .Select(g => new
+                {
+                    Name = g.Key,
+                    Count = g.Count(),
+                    Data = g.Select(p => p)
+                });
+
+        foreach (var staticG in staticsGroup)
         {
-            _context = context;
-            _userManager = userManager;
-        }
-
-        public IActionResult Index()
-        {
-            var statisticList = new List<UserTaskStatisticsViewModel>();
-
-            var user = _userManager.GetUserAsync(HttpContext.User).GetAwaiter().GetResult();
-
-            var statics = _context.UserTaskStatistics.Include(e => e.ExamTask).Where(s => s.IdentityUser == user).OrderBy(s => s.CreateDate);
-
-            var staticsGroup = statics
-                    .GroupBy(p => p.CreateDate)
-                    .Select(g => new
-                    {
-                        Name = g.Key,
-                        Count = g.Count(),
-                        Data = g.Select(p => p)
-                    });
-
-            foreach (var staticG in staticsGroup)
+            var statistic = new UserTaskStatisticsViewModel
             {
-                var statistic = new UserTaskStatisticsViewModel
-                {
-                    Date = staticG.Name,
-                    Count = staticG.Count,
-                };
+                Date = staticG.Name,
+                Count = staticG.Count,
+            };
 
-                var rightAnswers = 0;
-                var solutionChecking = 0;
-                foreach (var staticData in staticG.Data)
+            var rightAnswers = 0;
+            var solutionChecking = 0;
+            foreach (var staticData in staticG.Data)
+            {
+                if (staticData.Answer == staticData.RightAnswer)
                 {
-                    if (staticData.Answer == staticData.RightAnswer)
-                    {
-                        rightAnswers++;
-                    }
-                    if(1 == staticData.SolutionChecking)
-                    {
-                        solutionChecking++;
-                    }
-                    statistic.UserTaskStatistic.Add(staticData);
+                    rightAnswers++;
                 }
-                statistic.CorrectlySolved = rightAnswers - solutionChecking;
-                statistic.SolutionChecking = solutionChecking;
-
-                statisticList.Add(statistic);
+                if(1 == staticData.SolutionChecking)
+                {
+                    solutionChecking++;
+                }
+                statistic.UserTaskStatistic.Add(staticData);
             }
+            statistic.CorrectlySolved = rightAnswers - solutionChecking;
+            statistic.SolutionChecking = solutionChecking;
 
-            return View(statisticList);
+            statisticList.Add(statistic);
         }
 
-        public IActionResult Full()
-        {
-            var user = _userManager.GetUserAsync(HttpContext.User).GetAwaiter().GetResult();
+        return View(statisticList);
+    }
 
-            var statics = _context.UserTaskStatistics.Include(e => e.ExamTask).Where(s => s.IdentityUser == user).OrderBy(s => s.CreateDate);
+    public IActionResult Full()
+    {
+        var user = _userManager.GetUserAsync(HttpContext.User).GetAwaiter().GetResult();
 
-            return View(statics);
-        }
+        var statics = _context.UserTaskStatistics.Include(e => e.ExamTask).Where(s => s.IdentityUser == user).OrderBy(s => s.CreateDate);
+
+        return View(statics);
     }
 }

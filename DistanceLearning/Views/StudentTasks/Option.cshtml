@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Задачник";
     int taskCount = 0;
-    string hostName = "https://localhost:7271/";
+    //string hostName = "https://localhost:7271/";
     var tasks = Model;
     string nameAnswer = "";
 }
@@ -29,7 +29,7 @@
                     <p class="card-text">@Html.Raw(@tasks[i].Text)</p>
                     @if(null != @tasks[i].ImagePath){
                         <div class="text-center">
-                            <img src="@hostName/@tasks[i].ImagePath" alt="@tasks[i].ImageName">
+                            <img src="~/@tasks[i].ImagePath" alt="@tasks[i].ImageName">
                         </div>
                     }
                 </div>
@@ -59,7 +59,7 @@
                         <p class="card-text">@Html.Raw(@tasks[i].Solution.Text)</p>
                         @if(null != @tasks[i].Solution.ImagePath){
                             <div class="text-center">
-                                <img src="@hostName/@tasks[i].Solution.ImagePath" alt="@tasks[i].Solution.ImageName">
+                                <img src="~/@tasks[i].Solution.ImagePath" alt="@tasks[i].Solution.ImageName">
                             </div>
                         }
                         <p class="card-text">Ответ: @tasks[i].RightAnswer</p>
