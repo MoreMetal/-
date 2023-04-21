@@ -1,12 +1,13 @@
-using DistanceLearning.Data;
+﻿using DistanceLearning.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace DistanceLearning;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +47,22 @@ public class Program
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
         app.MapRazorPages();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var scopedProvider = scope.ServiceProvider;
+            try
+            {
+                var userManager = scopedProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var roleManager = scopedProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var identityContext = scopedProvider.GetRequiredService<AppDbContext>();
+                await IdentitySeed.SeedAsync(identityContext, userManager, roleManager);
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogError(ex, "Произошла ошибка при заполнении базы данных.");
+            }
+        }
 
         app.Run();
     }
