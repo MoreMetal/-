@@ -17,12 +17,11 @@ public class Program
             options.UseSqlServer(connectionString)
         );
 
-        builder.Services.AddDefaultIdentity<IdentityUser>()
-            .AddRoles<IdentityRole>()
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>();
 
         // Add services to the container.
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddMvc(option => option.EnableEndpointRouting = false);
 
         var app = builder.Build();
 
@@ -42,11 +41,18 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.UseMvc(routes =>
+        {
+            routes.MapRoute(
+                name: "areas",
+                template: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+        });
+
+        app.MapRazorPages();
+
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
-
-        app.MapRazorPages();
 
         using (var scope = app.Services.CreateScope())
         {
