@@ -22,6 +22,148 @@ namespace DistanceLearning.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("DistanceLearning.Data.Entities.ExamTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Formula")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TaskTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskTypeId");
+
+                    b.ToTable("ExamTasks");
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.GeneratedVariable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("LowerBound")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<float>("UpperBound")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
+
+                    b.ToTable("GeneratedVariables");
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.Solution", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImageName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId")
+                        .IsUnique();
+
+                    b.ToTable("Solutions");
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.TaskType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TaskTypes");
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.UserTaskStatistic", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Answer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamTaskId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("IdentityUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RightAnswer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SolutionChecking")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamTaskId");
+
+                    b.HasIndex("IdentityUserId");
+
+                    b.ToTable("UserTaskStatistics");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -220,6 +362,56 @@ namespace DistanceLearning.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("DistanceLearning.Data.Entities.ExamTask", b =>
+                {
+                    b.HasOne("DistanceLearning.Data.Entities.TaskType", "TaskType")
+                        .WithMany("ExamTasks")
+                        .HasForeignKey("TaskTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TaskType");
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.GeneratedVariable", b =>
+                {
+                    b.HasOne("DistanceLearning.Data.Entities.ExamTask", "Task")
+                        .WithMany("GeneratedVariables")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.Solution", b =>
+                {
+                    b.HasOne("DistanceLearning.Data.Entities.ExamTask", "Task")
+                        .WithOne("Solution")
+                        .HasForeignKey("DistanceLearning.Data.Entities.Solution", "TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.UserTaskStatistic", b =>
+                {
+                    b.HasOne("DistanceLearning.Data.Entities.ExamTask", "ExamTask")
+                        .WithMany("UserTaskStatistics")
+                        .HasForeignKey("ExamTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
+                        .WithMany()
+                        .HasForeignKey("IdentityUserId");
+
+                    b.Navigation("ExamTask");
+
+                    b.Navigation("IdentityUser");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -269,6 +461,20 @@ namespace DistanceLearning.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.ExamTask", b =>
+                {
+                    b.Navigation("GeneratedVariables");
+
+                    b.Navigation("Solution");
+
+                    b.Navigation("UserTaskStatistics");
+                });
+
+            modelBuilder.Entity("DistanceLearning.Data.Entities.TaskType", b =>
+                {
+                    b.Navigation("ExamTasks");
                 });
 #pragma warning restore 612, 618
         }

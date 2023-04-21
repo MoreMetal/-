@@ -21,7 +21,7 @@ public class Program
             .AddEntityFrameworkStores<AppDbContext>();
 
         // Add services to the container.
-        builder.Services.AddMvc(option => option.EnableEndpointRouting = false);
+        builder.Services.AddMvc();
 
         var app = builder.Build();
 
@@ -41,14 +41,11 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseMvc(routes =>
-        {
-            routes.MapRoute(
-                name: "areas",
-                template: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-        });
-
         app.MapRazorPages();
+
+        app.MapControllerRoute(
+            name: "admin",
+            pattern: "{area:exists}/{controller=TaskTypes}/{action=Index}/{id?}");
 
         app.MapControllerRoute(
             name: "default",
